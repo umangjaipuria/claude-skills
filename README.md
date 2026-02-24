@@ -6,7 +6,7 @@ A collection of skills for [Claude Code](https://claude.ai/product/claude-code) 
 
 | Skill | Description |
 |---|---|
-| [domain-brainstorm](./domain-brainstorm) | Brainstorm brandable domain names and check availability in real time |
+| [domain-brainstorm](./domain-brainstorm) | Brainstorm domain names and check availability in real time |
 
 ## Installing a Skill
 
@@ -31,4 +31,4 @@ That's it. The skill will be available the next time you start a Claude session.
 
 ## Requirements
 
-Some skills require additional dependencies. Check the skill's own README for details before installing.
+Typically bash and python3. Anything more involved will be mentioned in the skill's own README file.
