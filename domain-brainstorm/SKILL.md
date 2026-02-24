@@ -1,7 +1,9 @@
 ---
 name: domain-brainstorm
 description: Brainstorm brandable domain names and check availability in real time via RDAP. Use this skill when the user asks for domain name suggestions.
-allowed-tools: Bash(python3 *)
+allowed-tools: 
+   - Bash(python3 *)
+   - AskUserQuestion
 ---
 
 Brainstorm domain names for the user and check availability as you go.
