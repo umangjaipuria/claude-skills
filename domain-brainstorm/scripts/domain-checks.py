@@ -38,8 +38,36 @@ BACKOFF_SECONDS = 2.0
 RDAP_BASE = "https://rdap.org/domain/"
 IANA_RDAP_DNS = "https://data.iana.org/rdap/dns.json"
 IANA_WHOIS = "whois.iana.org"
-MAX_TLDS = 3
+MAX_TLDS = 50
 MAX_NAMES = 100
+
+# TLDs whose WHOIS server isn't reliably returned by IANA's referral service.
+KNOWN_WHOIS_SERVERS: Dict[str, str] = {
+    "app": "whois.nic.google",
+    "dev": "whois.nic.google",
+    "page": "whois.nic.google",
+    "new": "whois.nic.google",
+    "run": "whois.nic.google",
+    "chat": "whois.nic.google",
+    "money": "whois.nic.google",
+    "wtf": "whois.nic.google",
+    "fun": "whois.nic.google",
+    "cool": "whois.nic.google",
+    "lol": "whois.nic.google",
+    "pub": "whois.nic.google",
+    "how": "whois.nic.google",
+    "soy": "whois.nic.google",
+    "world": "whois.nic.world",
+    "live": "whois.nic.live",
+    "site": "whois.nic.site",
+    "online": "whois.nic.online",
+    "store": "whois.nic.store",
+    "tech": "whois.nic.tech",
+    "space": "whois.nic.space",
+    "website": "whois.nic.website",
+    "press": "whois.nic.press",
+    "host": "whois.nic.host",
+}
 
 # Patterns in WHOIS responses that indicate a domain is NOT registered.
 # Matched against the FIRST non-empty, non-comment line of the response
@@ -157,6 +185,11 @@ def whois_server_for_tld(tld: str) -> Optional[str]:
     tld = tld.lower()
     if tld in _whois_servers:
         return _whois_servers[tld]
+    # Check hardcoded fallback first.
+    if tld in KNOWN_WHOIS_SERVERS:
+        server = KNOWN_WHOIS_SERVERS[tld]
+        _whois_servers[tld] = server
+        return server
     resp = whois_query(tld, IANA_WHOIS)
     server = None
     for line in resp.splitlines():
