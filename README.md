@@ -6,6 +6,7 @@ A collection of skills for [Claude Code](https://claude.ai/product/claude-code) 
 
 | Skill | Description |
 |---|---|
+| [codex-code-review](./codex-code-review) | Get a second-opinion code review from OpenAI Codex CLI |
 | [domain-brainstorm](./domain-brainstorm) | Brainstorm domain names and check availability in real time |
 
 ## Installing a Skill
