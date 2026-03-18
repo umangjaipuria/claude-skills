@@ -8,6 +8,7 @@ A collection of skills for [Claude Code](https://claude.ai/product/claude-code) 
 |---|---|
 | [codex-code-review](./codex-code-review) | Get a second-opinion code review from OpenAI Codex CLI |
 | [domain-brainstorm](./domain-brainstorm) | Brainstorm domain names and check availability in real time |
+| [no-use-effect](./no-use-effect) | Avoid useEffect in React — use derived state, event handlers, and data-fetching libraries instead |
 
 ## Installing a Skill
 
