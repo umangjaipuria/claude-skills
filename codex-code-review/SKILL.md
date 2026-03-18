@@ -35,7 +35,7 @@ rm "$TMPFILE"
 - `--ephemeral` — no conversation persistence, clean context
 - `-o "$TMPFILE"` — write output to file (avoids noisy stdout metadata)
 
-**Important:** Always use `mktemp` to create the temp file — do not use the template string as a literal path.
+**Critical — temp file creation:** You MUST use `mktemp` exactly as shown above. On macOS, `mktemp` only replaces the X's when they are the **last characters** of the template. Do NOT add a file extension (e.g., `.md`) after the X's — this causes `mktemp` to use the template literally without substitution, creating a file literally named with X's. The template `/tmp/codex-review.XXXXXXXX` (no extension) is correct and must be used verbatim.
 
 **Error handling:** If codex returns a non-zero exit code, read stderr for the error message. Report the error to the user and do not retry automatically — there may be an auth or config issue the user needs to resolve.
 
