@@ -83,22 +83,22 @@ Tell Codex exactly how to structure its response:
 ```
 Return your review as plain text in this format:
 
-## Critical Issues
+CRITICAL ISSUES
 Issues that must be fixed — bugs, security vulnerabilities, data loss risks.
 List each with: file, line/section, issue description, and what should change.
 If none, write "None found."
 
-## Improvements
+IMPROVEMENTS
 Code quality, performance, readability, or maintainability suggestions.
 Tag each with a severity: [high] (real impact on correctness, performance, or security if left), [medium] (meaningful quality improvement), [low] (nitpick or style preference).
 List each with: severity tag, file, line/section, what to improve, and why.
 
 Be token-efficient. Use whichever is most concise: a brief description, a function/variable name, a short code snippet, or a one-liner fix. Don't rewrite large blocks of code — describe the change instead.
 
-## Positive Notes
+POSITIVE NOTES
 Things done well that should be kept.
 
-## Summary
+SUMMARY
 2-3 sentence overall assessment.
 
 Do NOT include metadata, conversation artifacts, or commentary outside this format.
