@@ -17,27 +17,38 @@ Get an independent code review from OpenAI's Codex CLI using GPT-5.4 with maximu
 
 Use `codex exec` to run a one-shot review. Always write output to a temp file for reliable capture.
 
+**Important:** Each step below must be a separate Bash tool call. Do NOT use `$()` command substitution or combine steps into one command — this triggers permission prompts.
+
+**Step 1 — Create a temp file:**
 ```bash
-TMPFILE=$(mktemp /tmp/codex-review.XXXXXXXX)
+mktemp /tmp/codex-review.XXXXXXXX
+```
+This prints the created file path. Save this path for use in steps 2 and 3.
+
+**Step 2 — Run Codex** (use the literal path printed by step 1):
+```bash
 codex exec \
   -m gpt-5.4 \
   -c 'model_reasoning_effort="xhigh"' \
   --ephemeral \
   -s read-only \
-  -o "$TMPFILE" \
+  -o <TMPFILE> \
   "$PROMPT"
-cat "$TMPFILE"
-rm "$TMPFILE"
 ```
+
+**Step 3 — Read and clean up:**
+Use the Read tool to read the temp file, then delete it with `rm <TMPFILE>`.
+
+In steps 2 and 3, replace `<TMPFILE>` with the actual path printed by step 1.
 
 **Flags explained:**
 - `-m gpt-5.4` — model selection (always use this for reviews)
 - `-c 'model_reasoning_effort="xhigh"'` — maximum thinking effort, principal-engineer level
 - `--ephemeral` — no conversation persistence, clean context
 - `-s read-only` — read-only sandbox, prevents Codex from modifying any files
-- `-o "$TMPFILE"` — write output to file (avoids noisy stdout metadata)
+- `-o <TMPFILE>` — write output to file (avoids noisy stdout metadata)
 
-**Critical — temp file creation:** You MUST use `mktemp` exactly as shown above. On macOS, `mktemp` only replaces the X's when they are the **last characters** of the template. Do NOT add a file extension (e.g., `.md`) after the X's — this causes `mktemp` to use the template literally without substitution, creating a file literally named with X's. The template `/tmp/codex-review.XXXXXXXX` (no extension) is correct and must be used verbatim.
+**Critical — temp file creation:** On macOS, `mktemp` only replaces the X's when they are the **last characters** of the template. Do NOT add a file extension (e.g., `.md`) after the X's — this causes `mktemp` to use the template literally without substitution. The template `/tmp/codex-review.XXXXXXXX` (no extension) is correct and must be used verbatim.
 
 **Error handling:** If codex returns a non-zero exit code, read stderr for the error message. Report the error to the user and do not retry automatically — there may be an auth or config issue the user needs to resolve.
 
