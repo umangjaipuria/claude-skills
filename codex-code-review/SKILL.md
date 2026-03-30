@@ -25,7 +25,7 @@ mktemp /tmp/codex-review.XXXXXXXX
 ```
 This prints the created file path. Save this path for use in steps 2 and 3.
 
-**Step 2 — Run Codex** (use the literal path printed by step 1):
+**Step 2 — Run Codex in the background** (use the literal path printed by step 1):
 ```bash
 codex exec \
   -m gpt-5.4 \
@@ -36,8 +36,10 @@ codex exec \
   "$PROMPT"
 ```
 
-**Step 3 — Read and clean up:**
-Use the Read tool to read the temp file, then delete it with `rm <TMPFILE>`.
+**Critical — run in background:** You MUST set `run_in_background: true` on this Bash tool call. Codex with xhigh reasoning regularly takes 3-8 minutes. If you run it in the foreground, the Bash tool will time out after 2 minutes and return partial/empty output — you will then incorrectly interpret incomplete results as the final review. Running in the background ensures you receive an explicit completion notification. Do NOT read the temp file, check on progress, or take any action on the review until you receive the background completion notification. Tell the user that Codex is running and you'll report back when it finishes.
+
+**Step 3 — Read and clean up (only after background completion):**
+After receiving the background task completion notification, use the Read tool to read the temp file, then delete it with `rm <TMPFILE>`.
 
 In steps 2 and 3, replace `<TMPFILE>` with the actual path printed by step 1.
 
