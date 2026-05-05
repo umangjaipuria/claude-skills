@@ -1,6 +1,6 @@
 ---
 name: codex-code-review
-description: Get a second-opinion code review from OpenAI Codex CLI (GPT-5.4 xhigh). Use when the user asks for a code review, wants a second pair of eyes, or you want to validate significant changes.
+description: Get a second-opinion code review from OpenAI Codex CLI (GPT-5.5 xhigh). Use when the user asks for a code review, wants a second pair of eyes, or you want to validate significant changes.
 allowed-tools:
   - Bash
   - Read
@@ -11,7 +11,7 @@ allowed-tools:
   - AskUserQuestion
 ---
 
-Get an independent code review from OpenAI's Codex CLI using GPT-5.4 with maximum reasoning effort. Codex acts as a principal engineer providing a second opinion. You have more context than Codex — use your own judgment to decide what feedback to incorporate.
+Get an independent code review from OpenAI's Codex CLI using GPT-5.5 with maximum reasoning effort. Codex acts as a principal engineer providing a second opinion. You have more context than Codex — use your own judgment to decide what feedback to incorporate.
 
 ## Invoking Codex
 
@@ -28,13 +28,15 @@ This prints the created file path. Save this path for use in steps 2 and 3.
 **Step 2 — Run Codex in the background** (use the literal path printed by step 1):
 ```bash
 codex exec \
-  -m gpt-5.4 \
+  -m gpt-5.5 \
   -c 'model_reasoning_effort="xhigh"' \
   --ephemeral \
   -s read-only \
   -o <TMPFILE> \
-  "$PROMPT"
+  "$PROMPT" < /dev/null
 ```
+
+**Critical — close stdin:** The `< /dev/null` redirect is required. Without it, codex may block waiting for stdin input when run as a background job, and the task will hang indefinitely instead of completing.
 
 **Critical — run in background:** You MUST set `run_in_background: true` on this Bash tool call. Codex with xhigh reasoning regularly takes 3-8 minutes. If you run it in the foreground, the Bash tool will time out after 2 minutes and return partial/empty output — you will then incorrectly interpret incomplete results as the final review. Running in the background ensures you receive an explicit completion notification. Do NOT read the temp file, check on progress, or take any action on the review until you receive the background completion notification. Tell the user that Codex is running and you'll report back when it finishes.
 
@@ -44,7 +46,7 @@ After receiving the background task completion notification, use the Read tool t
 In steps 2 and 3, replace `<TMPFILE>` with the actual path printed by step 1.
 
 **Flags explained:**
-- `-m gpt-5.4` — model selection (always use this for reviews)
+- `-m gpt-5.5` — model selection (always use this for reviews)
 - `-c 'model_reasoning_effort="xhigh"'` — maximum thinking effort, principal-engineer level
 - `--ephemeral` — no conversation persistence, clean context
 - `-s read-only` — read-only sandbox, prevents Codex from modifying any files
