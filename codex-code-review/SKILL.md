@@ -52,6 +52,47 @@ In steps 2 and 3, replace `<TMPFILE>` with the actual path printed by step 1.
 - `-s read-only` — read-only sandbox, prevents Codex from modifying any files
 - `-o <TMPFILE>` — write output to file (avoids noisy stdout metadata)
 
+### Optional invocation choices
+
+Keep these out of the default command. Follow each option's conditions before using it.
+
+#### Faster service tier
+
+Add this flag to an initial or resumed invocation only when the user explicitly asks for the fast
+service tier or faster Codex execution:
+
+```bash
+-c 'service_tier="fast"'
+```
+
+The fast service tier is more expensive. Do not enable it by default or infer that the user wants it
+from urgency, task complexity, or a general request to finish quickly.
+
+#### Continue the review session
+
+Use a persisted session when the calling agent expects another round of feedback or iteration:
+
+1. Omit `--ephemeral` from the initial invocation. This is required; ephemeral sessions cannot be
+   resumed.
+2. After assessing or applying the first review, create a new temp output file with the Step 1
+   `mktemp` command.
+3. Run the follow-up in the background from the same repository:
+
+```bash
+codex exec resume --last \
+  -m gpt-5.6-sol \
+  -c 'model_reasoning_effort="xhigh"' \
+  -c 'sandbox_mode="read-only"' \
+  -o <NEW_TMPFILE> \
+  "$FOLLOWUP_PROMPT" < /dev/null
+```
+
+`--last` selects the newest persisted session for the current working directory. If the session ID
+is known or multiple Codex runs may overlap, replace `--last` with the exact session ID. Apply the
+same background-run, completion-notification, output-reading, cleanup, and error-handling rules to
+every resumed round. Add `-c 'service_tier="fast"'` only if the user explicitly requested the more
+expensive fast tier.
+
 **Critical — temp file creation:** On macOS, `mktemp` only replaces the X's when they are the **last characters** of the template. Do NOT add a file extension (e.g., `.md`) after the X's — this causes `mktemp` to use the template literally without substitution. The template `/tmp/codex-review.XXXXXXXX` (no extension) is correct and must be used verbatim.
 
 **Error handling:** If codex returns a non-zero exit code, read stderr for the error message. Report the error to the user and do not retry automatically — there may be an auth or config issue the user needs to resolve.

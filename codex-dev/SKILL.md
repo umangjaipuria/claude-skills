@@ -116,8 +116,30 @@ allows writes anywhere on disk. Claude Code's auto-mode classifier denies it abs
 `Bash(codex exec:*)` permission rule. `-s workspace-write` covers the real use case; don't reach for
 yolo.
 
-Follow-up fixes — cheaper than fresh runs, keeps context. `resume` takes `-m`/`-o`/`-c` but has no
-`-C` and no `-s`, so `cd` into the repo and set the sandbox via `-c`:
+### Optional invocation choices
+
+Keep these out of the default command. Follow each option's conditions before using it.
+
+#### Faster service tier
+
+Add this flag to an initial or resumed invocation only when the user explicitly asks for the fast
+service tier or faster Codex execution:
+
+```bash
+-c 'service_tier="fast"'
+```
+
+The fast service tier is more expensive. Do not enable it by default or infer that the user wants it
+from urgency, task complexity, or a general request to finish quickly.
+
+#### Continue the development session
+
+Use `resume` when the calling agent wants another round of feedback, fixes, or iteration. The
+default initial command already persists its session because it deliberately omits `--ephemeral`.
+Resuming is cheaper than starting fresh and retains the prior task context.
+
+`resume` takes `-m`/`-o`/`-c` but has no `-C` and no `-s`, so `cd` into the repo and set the sandbox
+via `-c`:
 
 ```bash
 (cd <repo> && codex exec resume --last \
@@ -129,7 +151,10 @@ Follow-up fixes — cheaper than fresh runs, keeps context. `resume` takes `-m`/
   2> <scratch>/codex-<task>.fix.err.log)
 ```
 
-Step 3's validation applies to `resume` too.
+`--last` selects the newest persisted session for the repository. If the session ID is known or
+multiple Codex runs may overlap, replace `--last` with the exact session ID. Step 3's background,
+stderr, and validation rules apply to `resume` too. Add `-c 'service_tier="fast"'` only if the user
+explicitly requested the more expensive fast tier.
 
 ## Prompt contract
 
