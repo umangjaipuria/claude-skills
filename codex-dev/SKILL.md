@@ -171,6 +171,26 @@ nothing else — not the next task, not a `resume` of the same session, not a re
 Every fast-tier run needs its own explicit request from the user. An earlier "use fast" in this
 conversation is not permission for a later run.
 
+#### Online research and network access
+
+The default `-s workspace-write` sandbox has **network off**, so a research task delegated as-is
+will be answered from the model's memory and reported with full confidence. If the task needs the
+live internet — docs lookups, API/version checks, "what's the current best practice for X",
+installing deps — add both:
+
+```bash
+-c sandbox_workspace_write.network_access=true \
+-c tools.web_search=true
+```
+
+`network_access=true` lets the shell commands Codex runs reach the network (`curl`, package
+installs). `tools.web_search=true` gives Codex its built-in web search tool — the one that matters
+for research questions. Enabling one without the other is the usual reason a "research" run comes
+back with stale answers and no citations.
+
+Enable them only for tasks that need it: network access widens what a `workspace-write` run can
+reach. `medium` effort is usually right for research — the work is retrieval, not reasoning.
+
 #### Continue the development session
 
 Use `resume` when the calling agent wants another round of feedback, fixes, or iteration. The
