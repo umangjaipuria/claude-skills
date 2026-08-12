@@ -33,7 +33,8 @@ codex exec \
   --ephemeral \
   -s read-only \
   -o <TMPFILE> \
-  "$PROMPT" < /dev/null
+  "$PROMPT" < /dev/null \
+  2> <TMPFILE>.err.log
 ```
 
 **Critical — close stdin:** The `< /dev/null` redirect is required. Without it, codex may block waiting for stdin input when run as a background job, and the task will hang indefinitely instead of completing.
@@ -41,16 +42,23 @@ codex exec \
 **Critical — run in background:** You MUST set `run_in_background: true` on this Bash tool call. Codex with xhigh reasoning regularly takes 3-8 minutes. If you run it in the foreground, the Bash tool will time out after 2 minutes and return partial/empty output — you will then incorrectly interpret incomplete results as the final review. Running in the background ensures you receive an explicit completion notification. Do NOT read the temp file, check on progress, or take any action on the review until you receive the background completion notification. Tell the user that Codex is running and you'll report back when it finishes.
 
 **Step 3 — Read and clean up (only after background completion):**
-After receiving the background task completion notification, use the Read tool to read the temp file, then delete it with `rm <TMPFILE>`.
+After receiving the background task completion notification, use the Read tool to read the temp file, then delete both files with `rm <TMPFILE> <TMPFILE>.err.log` — unless you may resume the session, in which case keep the `.err.log` until the last round is done.
+
+Do NOT read `<TMPFILE>.err.log` whole — it holds the banner plus the full transcript. `grep` it: for `ERROR` when a run looks wrong, for `session id:` when you plan to resume. The review itself always comes from `<TMPFILE>`.
 
 In steps 2 and 3, replace `<TMPFILE>` with the actual path printed by step 1.
 
 **Flags explained:**
-- `-m gpt-5.6-sol` — model selection (always use this for reviews). Pinned, so a `/model` switch in the Codex app can't silently change what runs.
+- `2> <TMPFILE>.err.log` — capture stderr. It carries the banner (model, sandbox, effort, session id), any `ERROR` lines, and the transcript. This is the only channel that reports a failed run, and the only place the session id appears.
+- `-m gpt-5.6-sol` — model selection (the default for reviews). Pinned, so a `/model` switch in the Codex app can't silently change what runs.
 - `-c 'model_reasoning_effort="xhigh"'` — deep thinking, principal-engineer level. Sol also accepts `max` and `ultra` above this; `xhigh` is the sweet spot for review latency. Avoid `ultra` — it auto-delegates subtasks.
-- `--ephemeral` — no conversation persistence, clean context
+- `--ephemeral` — no conversation persistence, clean context. Drop it if another round is likely: an ephemeral session is not persisted, so its id cannot be resumed even though the banner still prints one.
+
+Do NOT add `--json` (prints the event stream as JSONL on stdout). It looks like a tidier way to get the session id, but it **moves errors off stderr** into `{"type":"error",...}` events on stdout and leaves stderr empty — a failed run then looks clean. It also suppresses the banner, taking the session id with it. stderr carries both; `--json` costs the error channel and buys nothing.
 - `-s read-only` — read-only sandbox, prevents Codex from modifying any files
 - `-o <TMPFILE>` — write output to file (avoids noisy stdout metadata)
+
+**Model and reasoning effort are defaults, not a lock.** If the user asks for a different model or a different reasoning effort, run what they asked for — pass it through `-m` / `-c 'model_reasoning_effort="..."'`. The values above are what you pick when the user hasn't expressed a preference.
 
 ### Optional invocation choices
 
@@ -65,8 +73,13 @@ service tier or faster Codex execution:
 -c 'service_tier="fast"'
 ```
 
-The fast service tier is more expensive. Do not enable it by default or infer that the user wants it
-from urgency, task complexity, or a general request to finish quickly.
+The fast service tier is more expensive. Never enable it on your own initiative. Do not infer it from
+urgency, task complexity, or a general request to finish quickly.
+
+**The ask does not carry forward.** It authorizes the one invocation the user asked for, and nothing
+else — not the next review, not a resumed round of the same review, not a re-run after a failure.
+Every fast-tier run needs its own explicit request from the user. An earlier "use fast" in this
+conversation is not permission for a later run.
 
 #### Continue the review session
 
@@ -74,24 +87,44 @@ Use a persisted session when the calling agent expects another round of feedback
 
 1. Omit `--ephemeral` from the initial invocation. This is required; ephemeral sessions cannot be
    resumed.
-2. After assessing or applying the first review, create a new temp output file with the Step 1
+2. Get the session id from the initial run's stderr banner:
+
+   ```bash
+   grep 'session id:' <TMPFILE>.err.log
+   ```
+
+   which prints:
+
+   ```
+   session id: 019ff382-15da-7b32-847f-5a47fa75523d
+   ```
+
+   Keep that UUID, and don't delete `<TMPFILE>.err.log` until you're done resuming.
+3. After assessing or applying the first review, create a new temp output file with the Step 1
    `mktemp` command.
-3. Run the follow-up in the background from the same repository:
+4. Run the follow-up in the background from the same repository:
 
 ```bash
-codex exec resume --last \
+codex exec resume <SESSION_ID> \
   -m gpt-5.6-sol \
   -c 'model_reasoning_effort="xhigh"' \
   -c 'sandbox_mode="read-only"' \
   -o <NEW_TMPFILE> \
-  "$FOLLOWUP_PROMPT" < /dev/null
+  "$FOLLOWUP_PROMPT" < /dev/null \
+  2> <NEW_TMPFILE>.err.log
 ```
 
-`--last` selects the newest persisted session for the current working directory. If the session ID
-is known or multiple Codex runs may overlap, replace `--last` with the exact session ID. Apply the
-same background-run, completion-notification, output-reading, cleanup, and error-handling rules to
-every resumed round. Add `-c 'service_tier="fast"'` only if the user explicitly requested the more
-expensive fast tier.
+**Don't use `--last`.** It resumes the newest persisted session for the working directory, which is
+not necessarily yours — another Codex instance, a ChatGPT app, or a second agent working in the same
+repo may have started a session after yours, and `--last` will silently hand your follow-up prompt
+to it. Always resume by explicit session id. If you don't have one — stderr was discarded, say —
+start a fresh review rather than guessing with `--last`.
+
+The resumed round prints its own banner, so grep its stderr file the same way if another round
+follows. Apply the same background-run, completion-notification, output-reading, cleanup, and
+error-handling rules to every resumed round. Add `-c 'service_tier="fast"'` only if the user
+explicitly asked for the fast tier for this particular run — a fast-tier initial review does not
+authorize a fast-tier follow-up.
 
 **Critical — temp file creation:** On macOS, `mktemp` only replaces the X's when they are the **last characters** of the template. Do NOT add a file extension (e.g., `.md`) after the X's — this causes `mktemp` to use the template literally without substitution. The template `/tmp/codex-review.XXXXXXXX` (no extension) is correct and must be used verbatim.
 
