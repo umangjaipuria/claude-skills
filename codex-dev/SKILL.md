@@ -50,7 +50,7 @@ permission prompts `$(...)` draws (same reason codex-code-review splits its step
 
 ```bash
 codex exec \
-  -m gpt-5.6-sol \
+  -m gpt-6-sol \
   -c 'model_reasoning_effort="high"' \
   -s workspace-write \
   -C <repo> \
@@ -122,7 +122,7 @@ don't retry — auth or config needs a human.
 
 Flags:
 
-- `-m gpt-5.6-sol` — pinned deliberately. Without it you inherit `~/.codex/config.toml`, which the
+- `-m gpt-6-sol` — pinned deliberately. Without it you inherit `~/.codex/config.toml`, which the
   Codex desktop app rewrites when you switch models. Pinned = reproducible.
 - `-c 'model_reasoning_effort="high"'` — also pinned; otherwise config.toml governs. Ladder:
   `medium` mechanical, `high` default, `xhigh` gnarly bugs, `max` last resort. Skip `ultra` — it
@@ -202,7 +202,7 @@ via `-c`:
 
 ```bash
 (cd <repo> && codex exec resume <SESSION_ID> \
-  -m gpt-5.6-sol \
+  -m gpt-6-sol \
   -c 'model_reasoning_effort="high"' \
   -c 'sandbox_mode="workspace-write"' \
   -o <scratch>/codex-<task>.fix.out.md \

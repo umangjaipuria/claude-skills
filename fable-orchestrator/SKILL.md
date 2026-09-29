@@ -33,7 +33,7 @@ Delegate tasks as follows:
 * use /codex-code-review to have Codex code review all code written by Claude/Opus, and a sub-agent using Opus to review all code written by Codex
 * you decide what feedback from code reviews is to be incorporated and what is to be discarded
 * for incorporating code review feedback, go back to the implementer. If the implementer was Codex, you can resume the appropriate session as described in the /codex-dev skill
-* use /codex-dev using the 5.6 Sol model and "medium" reasoning effort to delegate any online research tasks. Research needs the network flags from codex-dev's "Online research and network access" section — without them Codex answers from memory and sounds just as confident
+* use /codex-dev using the 6 Sol model and "medium" reasoning effort to delegate any online research tasks. Research needs the network flags from codex-dev's "Online research and network access" section — without them Codex answers from memory and sounds just as confident
 * if a task can't be delegated successfully — repeated failed rounds, or no delegate fits — stop and ask the user whether to try a different approach or have you do it directly. Do not quietly take over: codex-dev's "after 2 failed rounds, take over and do it directly" rule does not apply here. Spending Fable's tokens on implementation is the user's call, not yours
 * when reviewing and verifying coding work, use any lint, compile, typecheck tools available, and run appropriate tests yourself instead of taking the worker at its word
 * For large batches of work, especially code that touches on authentication or security or privacy, run adversarial reviews using /codex-code-dev and / or Opus sub-agents (both, if appropriate)
