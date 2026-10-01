@@ -1,6 +1,6 @@
 ---
 name: codex-code-review
-description: Get a second-opinion code review from OpenAI Codex CLI (GPT-6-Sol xhigh). Use when the user asks for a code review, wants a second pair of eyes, or you want to validate significant changes.
+description: Get a second-opinion code review from OpenAI Codex CLI (GPT-6.1-Sol xhigh). Use when the user asks for a code review, wants a second pair of eyes, or you want to validate significant changes.
 allowed-tools:
   - Bash
   - Read
@@ -11,7 +11,7 @@ allowed-tools:
   - AskUserQuestion
 ---
 
-Get an independent code review from OpenAI's Codex CLI using GPT-6-Sol at extra-high reasoning effort. Codex acts as a principal engineer providing a second opinion. You have more context than Codex — use your own judgment to decide what feedback to incorporate.
+Get an independent code review from OpenAI's Codex CLI using GPT-6.1-Sol at extra-high reasoning effort. Codex acts as a principal engineer providing a second opinion. You have more context than Codex — use your own judgment to decide what feedback to incorporate.
 
 ## Invoking Codex
 
@@ -28,7 +28,7 @@ This prints the created file path. Save this path for use in steps 2 and 3.
 **Step 2 — Run Codex in the background** (use the literal path printed by step 1):
 ```bash
 codex exec \
-  -m gpt-6-sol \
+  -m gpt-6.1-sol \
   -c 'model_reasoning_effort="xhigh"' \
   --ephemeral \
   -s read-only \
@@ -50,7 +50,7 @@ In steps 2 and 3, replace `<TMPFILE>` with the actual path printed by step 1.
 
 **Flags explained:**
 - `2> <TMPFILE>.err.log` — capture stderr. It carries the banner (model, sandbox, effort, session id), any `ERROR` lines, and the transcript. This is the only channel that reports a failed run, and the only place the session id appears.
-- `-m gpt-6-sol` — model selection (the default for reviews). Pinned, so a `/model` switch in the Codex app can't silently change what runs.
+- `-m gpt-6.1-sol` — model selection (the default for reviews). Pinned, so a `/model` switch in the Codex app can't silently change what runs.
 - `-c 'model_reasoning_effort="xhigh"'` — deep thinking, principal-engineer level. Sol also accepts `max` and `ultra` above this; `xhigh` is the sweet spot for review latency. Avoid `ultra` — it auto-delegates subtasks.
 - `--ephemeral` — no conversation persistence, clean context. Drop it if another round is likely: an ephemeral session is not persisted, so its id cannot be resumed even though the banner still prints one.
 
@@ -106,7 +106,7 @@ Use a persisted session when the calling agent expects another round of feedback
 
 ```bash
 codex exec resume <SESSION_ID> \
-  -m gpt-6-sol \
+  -m gpt-6.1-sol \
   -c 'model_reasoning_effort="xhigh"' \
   -c 'sandbox_mode="read-only"' \
   -o <NEW_TMPFILE> \
