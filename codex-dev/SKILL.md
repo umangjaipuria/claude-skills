@@ -185,8 +185,10 @@ installing deps — add both:
 
 `network_access=true` lets the shell commands Codex runs reach the network (`curl`, package
 installs). `tools.web_search=true` gives Codex its built-in web search tool — the one that matters
-for research questions. Enabling one without the other is the usual reason a "research" run comes
-back with stale answers and no citations.
+for research questions. Web search is already on by default in current Codex (0.164+) and runs
+server-side, outside the sandbox; the flag pins it on explicitly so a config change can't silently
+turn it off. Network access is not on by default — without it, any shell command that fetches
+(`curl`, `npm view`, installs) fails with a DNS error.
 
 Enable them only for tasks that need it: network access widens what a `workspace-write` run can
 reach. `medium` effort is usually right for research — the work is retrieval, not reasoning.

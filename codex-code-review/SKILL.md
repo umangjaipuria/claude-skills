@@ -81,6 +81,35 @@ else — not the next review, not a resumed round of the same review, not a re-r
 Every fast-tier run needs its own explicit request from the user. An earlier "use fast" in this
 conversation is not permission for a later run.
 
+#### Online research and network access
+
+Web search already works in the default `-s read-only` review: it runs server-side, outside the
+sandbox, and is on by default in current Codex (0.164+). For reviews that hinge on current external
+facts — library/API behavior, deprecations, CVEs — just tell Codex in the prompt to use web search
+to verify them. No flag change needed; add `-c tools.web_search=true` only to pin it on explicitly.
+
+Shell network access (`curl`, `npm view`, `pip index versions`) is off under `-s read-only`. When
+a review needs it, replace `-s read-only` with a permission profile that extends the built-in
+read-only profile and turns network on — writes stay blocked by the sandbox:
+
+```bash
+-c 'default_permissions="review"' \
+-c 'permissions.review.extends=":read-only"' \
+-c 'permissions.review.network.enabled=true'
+```
+
+Drop `-s read-only` when using these — `sandbox_mode` and `default_permissions` can't both be set.
+The same three flags work on `resume`, replacing `-c 'sandbox_mode="read-only"'`. Confirm it took
+effect: the stderr banner should read `sandbox: read-only (network access enabled)`.
+
+Don't use `-c sandbox_workspace_write.network_access=true` here: it only applies to
+`workspace-write` and is silently ignored under `read-only` — the banner shows plain `read-only` and
+fetches fail with a DNS error. And don't switch to `workspace-write` to get network; that lets Codex
+modify the repo.
+
+Enable network only when the review needs shell commands to fetch — not for research, which web
+search already covers.
+
 #### Continue the review session
 
 Use a persisted session when the calling agent expects another round of feedback or iteration:
