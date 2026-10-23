@@ -1,6 +1,6 @@
 ---
 name: codex-dev
-description: "Route implementation work to Codex CLI; Claude specs, reviews, verifies. Use when a task is a work order — implementation from a settled spec, refactors, mechanical migrations, bug fixes with a known repro, test writing, CI fixes, dependency bumps, or bulk codebase exploration."
+description: "Route implementation work to Codex CLI when requested; Use when explicitly requested by the user or from another skill. Can be used for the following types of tasks: implementation from a settled spec, refactors, mechanical migrations, bug fixes with a known repro, test writing, CI fixes, dependency bumps, or bulk codebase exploration."
 allowed-tools:
   - Bash
   - Read
@@ -15,7 +15,7 @@ allowed-tools:
 
 Claude Code sessions only. Codex/other harnesses: skip; never self-delegate.
 
-Rationale: Claude (Fable/Opus) tokens metered + expensive; Codex flat-rate. GPT-5.6+ is usually the better and faster model at writing/implementing code; Claude wins at ergonomics — judgment, design, spec-writing, review, orchestration. So Codex types, Claude thinks and verifies.
+Rationale: Claude (when using Fable) tokens metered + more expensive, and Codex may be better at certain kinds of tasks than Claude. Defer to user judgement on when to use this skill and use Codex for tasks.
 
 ## Route
 
